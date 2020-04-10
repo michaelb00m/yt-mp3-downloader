@@ -1,6 +1,10 @@
 # yt-mp3-Downloader
 A little back- and frontend to download youtube videos, covert them to mp3 and download them
 
+## Requisites
+To run this project, you need to have a local installation of FFmpeg present on your system. You can download it from https://www.ffmpeg.org/download.html
+Also a working installation of node and npm is obviously required. npm is shipped with node so you can get both from https://nodejs.org/en/download/
+
 ## Installation
 Either download this as a .zip and unpack it or clone the github repository. Cloning the github repository works by installing git from https://git-scm.com/downloads, navigating to a directory where you want the repository to be saved and then typing into the console 
 ```sh

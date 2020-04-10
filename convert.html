@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Youtube MP3 Converter</title>
+
+    <!-- importing the bootstrap library from their cdn -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+        integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+</head>
+
+<body>
+    <!-- if you want to know all that styling stuff with the clases and so on
+         either look up the bootstrap documentation at 
+                https://getbootstrap.com/docs/4.0/getting-started/introduction/
+         or ask me :) -->
+    <div class="container mt-4 justify-content-center">
+        <div class="row justify-content-center mb-3">
+            <h1 class="text-center">YouTube MP3 Downloader</h1>
+        </div>
+        <div class="container justify-content-center">
+            <div class="row progress">
+                <div class="progress-bar" role="progressbar w-75" aria-valuenow="0" aria-valuetext="0" aria-valuetext="100">
+                </div>
+            </div>
+        </div>
+        <div class="row mt-2 justify-content-center dis-n">
+            <a id="download" href="">
+                <button type="button" class="btn btn-primary" disabled>Download</button>
+            </a>
+            <a href="/">
+                <button type="button" class="btn btn-secondary ml-2">Convert another file</button>
+            </a>
+        </div>
+    </div>
+
+    <!-- js libraries needed for full bootstrap functionality -->
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
+        integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+        integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+        crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+        integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
+        crossorigin="anonymous"></script>
+    
+    <!-- requesting the socket.io library from the server -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        // intializing the socket.io socket (the connection to the server)
+        var socket = io();
+
+        // getting the progress bar, the download link and the download button
+        // elements from the document with jquery
+        const pBar = $('.progress-bar');
+        const link = $('#download');
+        const btn = $('.btn');
+        // setting the width of the progress bar to 0 (needed for animation)
+        pBar.width(0);
+
+        // listener for the progress event emitted by the server
+        socket.on('progress', data => {
+            // setting the width ('the progress') of the progress bar to the
+            // value sent by the server in %
+            pBar.width(`${data}%`);
+        });
+        // listener for the finshed event emitted by the server
+        socket.on('finished', id => {
+            // sets the href attribute (the url the link points to) to
+            // /download/ and the requested video id
+            link.attr('href', `/download/${id}`);
+            // makes the button clickable
+            btn.removeAttr('disabled');
+            // closes the socket connection since it is not longer needed
+            socket.close();
+        });
+    </script>
+</body>
+
+</html>

@@ -14,16 +14,23 @@ const io = require('socket.io')(http);
 // the object that handles the downloads
 const downloader = require('./downloader');
 
+const debug = false;
+
 // initialization of array for downloaded files and connected clients
 let files = [];
 let httpClients = [];
+let sockets = [];
 
 // handler function for freshly connecting client sockets
 io.on('connection', socket => {
     // find the right entry in the httpClients array
     let index = httpClients.findIndex(el => el.address === socket.handshake.address)
     // set the socket of the right entry
-    httpClients[index].socket = socket;
+    try {
+        httpClients[index].socket = socket;
+    } catch (e) {
+	sockets.push(socket);
+    }
 });
 
 // configuring middleware for body parsing
@@ -37,6 +44,7 @@ downloader.subProgress((progress, id) => {
     // socket
     const socket = httpClients.find(el => el.id === id).socket;
     // send the percentage of the downloads progress to the client
+    debug ? console.log(progress.percentage.toString()) : null;
     socket.emit('progress', progress.percentage.toString());
 });
 
@@ -82,14 +90,23 @@ app.get('/convert/:id', (req, res) => {
     const { id } = req.params;
     // adding the new client to the list of clients (without the socket because
     // the connection is not yet established)
-    httpClients.push({
-        address: req.connection.remoteAddress,
-        id,
-        socket: null
-    })
+    if (sockets.find((socket) => socket.handshake.address === req.connection.remoteAddress)) {
+	httpClients.push({
+	    address: req.connection.remoteAddress,
+	    id,
+	    socket: sockets.find((socket) => socket.handshake.address === req.connection.remoteAddress)
+	});
+    } else {
+        httpClients.push({
+           address: req.connection.remoteAddress,
+           id,
+           socket: null
+        })
+    }
     // sends convert.html to the client and closes the connection
     res.sendFile(path.join(__dirname, 'convert.html'));
     // starts the download (and conversion) of the desired video
+    debug ? console.log('download started') : null;
     downloader.download(id);
 })
 

@@ -1,5 +1,7 @@
 // the library which is used to download and convert the youtube videos
 const down = require('youtube-mp3-downloader');
+const fs = require("fs");
+const debug = false;
 
 // start of the Downloader class delcaration
 class Downloader {
@@ -18,13 +20,16 @@ class Downloader {
      *                                   emitted by down (optional, defaults
      *                                   to [])
      */
-    constructor (finishListener = [], errorListener = [], progressListener = []) {
+    constructor (ffmpegPath, finishListener = [], errorListener = [], progressListener = []) {
         // initialization of the downloader instance
+	if (typeof ffmpegPath === typeof []) 
+	    throw new Error("the first argument must be a path to your ffmpeg installation");
+	debug ? console.log(ffmpegPath) : null;
         this.YD = new down({
             // path to the ffmpeg executable
-            ffmpegPath: 'E:\\ffmpeg\\bin\\ffmpeg.exe',
+            ffmpegPath,
             // output path for the converted files
-            outputPath: __dirname + '\\',
+            outputPath: __dirname + '/out',
             // desired video quality
             youtubeVideoQuality: 'highest'
         });
@@ -44,12 +49,14 @@ class Downloader {
         });
          
         this.YD.on("error", function(error) {
+	    debug ? console.log(error) : null;
             downloader.subbedError.forEach(listener => listener(error));
         });
         
         // the parameter of the function is obtained via object destructuring
         // { progress } https://wesbos.com/destructuring-objects/
         this.YD.on("progress", function({ progress }) {
+	    debug ? console.log(progress) : null;
             downloader.subbedProgress.forEach(listener => listener(progress, downloader.id));
         });
     }
@@ -77,8 +84,12 @@ class Downloader {
     }
 }
 
+const config = JSON.parse(fs.readFileSync(__dirname + "/config.json").toString());
+console.log(config);
+const ffmpegPath = config.development.ffmpeg.path;
+
 // initalizes an instance of the Downloader class
-const downloader = new Downloader();
+const downloader = new Downloader(ffmpegPath);
 
 // exports the instance
 module.exports = downloader;

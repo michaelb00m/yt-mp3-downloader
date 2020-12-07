@@ -1,0 +1,7 @@
+{
+	"development": {
+		"ffmpeg": {
+			"path": "/usr/bin/ffmpeg"
+		}
+	}
+}
